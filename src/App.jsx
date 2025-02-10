@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const tempMovieData = [
   {
@@ -50,9 +50,21 @@ const tempWatchedData = [
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
 
+const KEY = "7b1a62ea";
+const BASE_URL = `http://www.omdbapi.com/?apikey=${KEY}&`;
+
 export default function App() {
-  const [movies, setMovies] = useState(tempMovieData);
-  const [watched, setWatched] = useState(tempWatchedData);
+  const [movies, setMovies] = useState([]);
+  const [watched, setWatched] = useState([]);
+
+  useEffect(function () {
+    async function fetchMovies() {
+      const response = await fetch(`${BASE_URL}s=interstellar`);
+      const data = await response.json();
+      setMovies(data.Search);
+    }
+    fetchMovies();
+  }, []);
   return (
     <>
       <Navbar>
@@ -123,6 +135,7 @@ function Box({ children }) {
   );
 }
 function MovieList({ movies }) {
+  console.log(movies);
   return (
     <ul className="list">
       {movies?.map((movie) => (
