@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
 
 const tempMovieData = [
@@ -53,28 +54,56 @@ const average = (arr) =>
 const KEY = "7b1a62ea";
 const BASE_URL = `http://www.omdbapi.com/?apikey=${KEY}&`;
 
+const tempQuery = "sdsfsd";
+
 export default function App() {
   const [movies, setMovies] = useState([]);
   const [watched, setWatched] = useState([]);
+  const [query, setQuery] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  useEffect(function () {
-    async function fetchMovies() {
-      const response = await fetch(`${BASE_URL}s=interstellar`);
-      const data = await response.json();
-      setMovies(data.Search);
-    }
-    fetchMovies();
-  }, []);
+  useEffect(
+    function () {
+      async function fetchMovies() {
+        setIsLoading(true);
+        setError("");
+        try {
+          const response = await fetch(`${BASE_URL}s=${query}`);
+
+          if (!response.ok)
+            throw new Error("Something went wrong with fetching...");
+
+          const data = await response.json();
+          if (data.Response === "False") throw new Error("Movie not found!");
+          setMovies(data.Search);
+        } catch (err) {
+          console.error(err.message);
+          setError(err.message);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      fetchMovies();
+    },
+    [query]
+  );
   return (
     <>
       <Navbar>
         <Logo />
-        <Search />
+        <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
       </Navbar>
       <Main>
         <Box>
-          <MovieList movies={movies} />
+          {isLoading ? (
+            <Loader />
+          ) : error ? (
+            <ErrorMessage message={error} />
+          ) : (
+            <MovieList movies={movies} />
+          )}
         </Box>
         <Box>
           <WatchedSummary watched={watched} />
@@ -82,6 +111,20 @@ export default function App() {
         </Box>
       </Main>
     </>
+  );
+}
+
+function Loader() {
+  return <p className="loader"> Loading...</p>;
+}
+
+function ErrorMessage({ message }) {
+  return (
+    <p className="error">
+      {" "}
+      <span>⛔</span>
+      {message}{" "}
+    </p>
   );
 }
 
@@ -98,8 +141,7 @@ function Logo() {
   );
 }
 
-function Search() {
-  const [query, setQuery] = useState("");
+function Search({ query, setQuery }) {
   return (
     <input
       className="search"
@@ -135,7 +177,6 @@ function Box({ children }) {
   );
 }
 function MovieList({ movies }) {
-  console.log(movies);
   return (
     <ul className="list">
       {movies?.map((movie) => (
