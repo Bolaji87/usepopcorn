@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { useEffect, useState } from "react";
+import StarRating from "./components/StarRating";
 
 const tempMovieData = [
   {
@@ -237,25 +238,55 @@ function MovieDetails({ selectedId, onCloseMovie }) {
   } = movie;
 
   console.log(title, year);
-  useEffect(function () {
-    async function getMovieDetails() {
-      try {
-        const response = await fetch(`${BASE_URL}i=${selectedId}`);
-        const data = await response.json();
-        console.log(data);
-        setMovie(data);
-      } catch (err) {
-        console.error(err.message);
+  useEffect(
+    function () {
+      async function getMovieDetails() {
+        try {
+          const response = await fetch(`${BASE_URL}i=${selectedId}`);
+          const data = await response.json();
+          setMovie(data);
+        } catch (err) {
+          console.error(err.message);
+        }
       }
-    }
-    getMovieDetails();
-  }, []);
+      getMovieDetails();
+    },
+    [selectedId]
+  );
   return (
     <div className="details">
-      <button className="btn-back" onClick={onCloseMovie}>
-        &larr;
-      </button>
-      {selectedId}
+      <header>
+        <button className="btn-back" onClick={onCloseMovie}>
+          &larr;
+        </button>
+        <img src={image} alt={`poster of ${title} movie`} />
+        <div className="details-overview">
+          <h2>{title}</h2>
+          <p>
+            {released} &bull; {runtime}
+          </p>
+          <p>{genre}</p>
+          <p>
+            <span>⭐</span>
+            {imdbRating} IMDBb rating
+          </p>
+        </div>
+      </header>
+      <section>
+        <div className="rating">
+          <StarRating
+            maxRating={10}
+            color="#fcc419"
+            size={28}
+            defaultRating={0}
+          />
+        </div>
+        <p>
+          <em>{plot}</em>
+        </p>
+        <p>Starring {actors}</p>
+        <p>Directed by {director}</p>
+      </section>
     </div>
   );
 }
