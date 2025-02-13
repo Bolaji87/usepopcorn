@@ -142,7 +142,6 @@ function Loader() {
 function ErrorMessage({ message }) {
   return (
     <p className="error">
-      {" "}
       <span>⛔</span>
       {message}{" "}
     </p>
@@ -223,7 +222,8 @@ function Movie({ movie, onSelectMovie }) {
 
 function MovieDetails({ selectedId, onCloseMovie }) {
   const [movie, setMovie] = useState({});
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
   const {
     Title: title,
     Year: year,
@@ -237,16 +237,23 @@ function MovieDetails({ selectedId, onCloseMovie }) {
     Genre: genre,
   } = movie;
 
-  console.log(title, year);
   useEffect(
     function () {
       async function getMovieDetails() {
+        setIsLoading(true);
+        setError("");
         try {
           const response = await fetch(`${BASE_URL}i=${selectedId}`);
+          if (!response.ok) throw new Error("Error fetching movie details");
+
           const data = await response.json();
+          if (data.Response === "False")
+            throw new Error("Movie details not found!");
           setMovie(data);
+
+          setIsLoading(false);
         } catch (err) {
-          console.error(err.message);
+          setError(err.message);
         }
       }
       getMovieDetails();
@@ -255,38 +262,46 @@ function MovieDetails({ selectedId, onCloseMovie }) {
   );
   return (
     <div className="details">
-      <header>
-        <button className="btn-back" onClick={onCloseMovie}>
-          &larr;
-        </button>
-        <img src={image} alt={`poster of ${title} movie`} />
-        <div className="details-overview">
-          <h2>{title}</h2>
-          <p>
-            {released} &bull; {runtime}
-          </p>
-          <p>{genre}</p>
-          <p>
-            <span>⭐</span>
-            {imdbRating} IMDBb rating
-          </p>
-        </div>
-      </header>
-      <section>
-        <div className="rating">
-          <StarRating
-            maxRating={10}
-            color="#fcc419"
-            size={28}
-            defaultRating={0}
-          />
-        </div>
-        <p>
-          <em>{plot}</em>
-        </p>
-        <p>Starring {actors}</p>
-        <p>Directed by {director}</p>
-      </section>
+      {isLoading ? (
+        <Loader />
+      ) : error ? (
+        <ErrorMessage message={error} />
+      ) : (
+        <>
+          <header>
+            <button className="btn-back" onClick={onCloseMovie}>
+              &larr;
+            </button>
+            <img src={image} alt={`poster of ${title} movie`} />
+            <div className="details-overview">
+              <h2>{title}</h2>
+              <p>
+                {released} &bull; {runtime}
+              </p>
+              <p>{genre}</p>
+              <p>
+                <span>⭐</span>
+                {imdbRating} IMDBb rating
+              </p>
+            </div>
+          </header>
+          <section>
+            <div className="rating">
+              <StarRating
+                maxRating={10}
+                color="#fcc419"
+                size={28}
+                defaultRating={0}
+              />
+            </div>
+            <p>
+              <em>{plot}</em>
+            </p>
+            <p>Starring {actors}</p>
+            <p>Directed by {director}</p>
+          </section>
+        </>
+      )}
     </div>
   );
 }
