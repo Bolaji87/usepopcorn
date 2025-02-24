@@ -2,21 +2,20 @@
 import { useEffect, useRef, useState } from "react";
 import StarRating from "./components/StarRating";
 import { useMovies } from "./useMovies";
+import { useLocalStorageState } from "./components/useLocalStorageState";
 
 const average = (arr) =>
   arr.reduce((acc, cur, i, arr) => acc + cur / arr.length, 0);
+
 const KEY = "7b1a62ea";
 const BASE_URL = `http://www.omdbapi.com/?apikey=${KEY}&`;
 
 export default function App() {
   const [selectedId, setSelectedId] = useState(null);
   const [query, setQuery] = useState("");
-  const [watched, setWatched] = useState(() => {
-    const storedValue = localStorage.getItem("watched");
-    return JSON.parse(storedValue);
-  });
 
-  const [movies, error, isLoading] = useMovies(query, handleCloseMovie);
+  const { movies, error, isLoading } = useMovies(query, handleCloseMovie);
+  const [watched, setWatched] = useLocalStorageState([], "watched");
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (selectedId === id ? null : id));
@@ -33,13 +32,6 @@ export default function App() {
   function handleDeleteWatchedMovie(id) {
     setWatched((watched) => watched.filter((watch) => watch.imdbID !== id));
   }
-
-  useEffect(
-    function () {
-      localStorage.setItem("watched", JSON.stringify(watched));
-    },
-    [watched]
-  );
 
   return (
     <>
@@ -371,6 +363,9 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
 // }
 
 function WatchedSummary({ watched }) {
+  // const avgImdbRating =
+  //   watched.length > 0 ? average(watched.map((movie) => movie.imdbRating)) : 0;
+
   const avgImdbRating = average(watched?.map((movie) => movie.imdbRating));
   const avgUserRating = average(watched?.map((movie) => movie.userRating));
   const avgRuntime = average(watched?.map((movie) => movie.runtime));
@@ -416,8 +411,8 @@ function WatchedMoviesList({ watched, onDeleteWatchedMovie }) {
 function WatchedMovie({ movie, onDeleteWatchedMovie }) {
   return (
     <li>
-      <img src={movie.poster} alt={`${movie.pitle} poster`} />
-      <h3>{movie.pitle}</h3>
+      <img src={movie.poster} alt={`${movie.title} poster`} />
+      <h3>{movie.title}</h3>
       <div>
         <p>
           <span>⭐️</span>
