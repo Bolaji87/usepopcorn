@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 const KEY = "7b1a62ea";
 const BASE_URL = `http://www.omdbapi.com/?apikey=${KEY}&`;
 
-export function useMovies(query) {
+export function useMovies(query, callback) {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,6 +42,7 @@ export function useMovies(query) {
       }
 
       //   handleCloseMovie();
+      callback();
       fetchMovies();
 
       return () => {
@@ -51,5 +52,5 @@ export function useMovies(query) {
     [query]
   );
 
-  return [movies, error, isLoading];
+  return [movies, isLoading, error];
 }
