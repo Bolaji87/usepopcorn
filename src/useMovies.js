@@ -42,7 +42,7 @@ export function useMovies(query, callback) {
       }
 
       //   handleCloseMovie();
-      callback();
+      callback?.();
       fetchMovies();
 
       return () => {
